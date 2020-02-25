@@ -24,7 +24,7 @@ accurately.
 -----------------------------------------------------------------
 */
 
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "SafeMath.sol";
 
@@ -41,6 +41,9 @@ library SafeDecimalMath {
     /* Number of decimal places in the representations. */
     uint8 public constant decimals = 18;
     uint8 public constant highPrecisionDecimals = 27;
+    
+    /* The max unsigned int value is roughly 1.16e77 (== 2^256) */
+    uint8 public constant maxPrecisionAllowed = 77;
 
     /* The number representing 1.0. */
     uint public constant UNIT = 10**uint(decimals);
@@ -148,6 +151,64 @@ library SafeDecimalMath {
     }
 
     /**
+     * @param i The input value in fixed-point form, with `precisionOfInput` digits behind the decimal point
+     * @param precisionOfInput The number of digits of i, starting with LSB, that are behind the decimal 
+     *      (they represent values less than integers)
+     * @return A "precise decimal" formatted number representing the same value as input param i
+     * 
+     * @dev scales i up or down by factors of 10 depending on precisionOfInput
+     */ 
+    function customPrecisionToPreciseDecimal(uint i, uint precisionOfInput) internal pure returns (uint) {
+        require(precisionOfInput <= maxPrecisionAllowed, "precisionOfInput is too high! (must be 77 or less)");
+        
+        if(precisionOfInput == highPrecisionDecimals) {
+            return i;
+        }
+        else if(precisionOfInput < highPrecisionDecimals) {
+            /* needs check here for overflow of exponentiation */
+            
+            return i.mul(10 ** (highPrecisionDecimals - precisionOfInput));
+        }
+        else {  /* if precisionOfInput > highPrecisionDecimals */
+            uint quotientTimesTen = i / (10 ** (precisionOfInput - highPrecisionDecimals) / 10);
+
+            if (quotientTimesTen % 10 >= 5) {
+                quotientTimesTen += 10;
+            }
+
+            return quotientTimesTen / 10;
+        }
+    }
+
+    /**
+     * @param i The input value as a precise decimal
+     * @param precisionDesired The number of digits, starting with LSB, that are desired to be behind the decimal 
+     *      in the output number (they represent values less than integers)
+     * @return A custom-precision fixed-point number representing the same value as input param i
+     * 
+     * @dev scales i up or down by factors of 10 depending on precisionOfInput
+     */ 
+    function preciseDecimalToCustomPrecision(uint i, uint precisionDesired) internal pure returns (uint) {
+        require(precisionDesired <= maxPrecisionAllowed, "precisionDesired is too high! (must be 77 or less)");
+        
+        if(precisionDesired == highPrecisionDecimals) {
+            return i;
+        }
+        else if(precisionDesired < highPrecisionDecimals) {
+            uint quotientTimesTen = i / (10 ** (highPrecisionDecimals - precisionDesired) / 10);
+            
+            if (quotientTimesTen % 10 >= 5) {
+                quotientTimesTen += 10;
+            }
+            
+            return quotientTimesTen / 10;
+        }
+        else { 
+            return i.mul(10 ** (precisionDesired - highPrecisionDecimals));
+        }
+    }
+
+    /**
      * @dev Convert a standard decimal representation to a high precision one.
      */
     function decimalToPreciseDecimal(uint i) internal pure returns (uint) {
@@ -208,3 +269,4 @@ library SafeDecimalMath {
         return resultTimesTen / 10;
     }
 }
+ 
