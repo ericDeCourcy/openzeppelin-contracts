@@ -145,7 +145,7 @@ library SafeDecimalMath {
      * (eg. small fractions or percentages).
      */
     function multiplyStandardDecimalRound(StandardDecimal memory x, StandardDecimal memory y) internal pure returns (uint) {
-        return _multiplyDecimalRound(x.value, y.value, UNIT);
+        return _multiplyDecimalRound(x.value, y.value, standardDecimalPrecision);
     }
 
     /**
