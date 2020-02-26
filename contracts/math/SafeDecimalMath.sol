@@ -170,13 +170,13 @@ library SafeDecimalMath {
             return i.mul(10 ** (highPrecisionDecimals - precisionOfInput));
         }
         else {  /* if precisionOfInput > highPrecisionDecimals */
-            uint quotientTimesTen = i / (10 ** (precisionOfInput - highPrecisionDecimals) / 10);
+            uint quotientTimesTen = i.div(10 ** (precisionOfInput - highPrecisionDecimals) / 10);
 
             if (quotientTimesTen % 10 >= 5) {
-                quotientTimesTen += 10;
+                quotientTimesTen = quotientTimesTen.add(10);
             }
 
-            return quotientTimesTen / 10;
+            return quotientTimesTen.div(10);
         }
     }
 
@@ -195,13 +195,13 @@ library SafeDecimalMath {
             return i;
         }
         else if(precisionDesired < highPrecisionDecimals) {
-            uint quotientTimesTen = i / (10 ** (highPrecisionDecimals - precisionDesired) / 10);
+            uint quotientTimesTen = i.div(10 ** (highPrecisionDecimals - precisionDesired) / 10);
             
             if (quotientTimesTen % 10 >= 5) {
-                quotientTimesTen += 10;
+                quotientTimesTen = quotientTimesTen.add(10);
             }
             
-            return quotientTimesTen / 10;
+            return quotientTimesTen.div(10);
         }
         else { 
             return i.mul(10 ** (precisionDesired - highPrecisionDecimals));
@@ -219,13 +219,13 @@ library SafeDecimalMath {
      * @dev Convert a high precision decimal to a standard decimal representation.
      */
     function preciseDecimalToDecimal(uint i) internal pure returns (uint) {
-        uint quotientTimesTen = i / (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);
+        uint quotientTimesTen = i / (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10); //These are constant, so no div by 0 possible
 
         if (quotientTimesTen % 10 >= 5) {
-            quotientTimesTen += 10;
+            quotientTimesTen = quotientTimesTen.add(10);
         }
 
-        return quotientTimesTen / 10;
+        return quotientTimesTen.div(10);
     }
 
     /**
@@ -245,10 +245,10 @@ library SafeDecimalMath {
         uint quotientTimesTen = x.mul(y) / (precisionUnit / 10);
 
         if (quotientTimesTen % 10 >= 5) {
-            quotientTimesTen += 10;
+            quotientTimesTen = quotientTimesTen(10);
         }
 
-        return quotientTimesTen / 10;
+        return quotientTimesTen.div(10);
     }
 
     /**
@@ -263,10 +263,10 @@ library SafeDecimalMath {
         uint resultTimesTen = x.mul(precisionUnit * 10).div(y);
 
         if (resultTimesTen % 10 >= 5) {
-            resultTimesTen += 10;
+            resultTimesTen = resultTimesTen.add(10);
         }
 
-        return resultTimesTen / 10;
+        return resultTimesTen.div(10);
     }
 }
  
